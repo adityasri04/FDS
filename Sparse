@@ -1,0 +1,123 @@
+#include <stdio.h>
+
+// Structure to represent a sparse matrix element
+typedef struct {
+    int row;
+    int col;
+    int value;
+} SparseMatrixElement;
+
+// Function to perform Simple Transpose on a sparse matrix
+void simpleTranspose(int n, int m, int numNonZero, SparseMatrixElement matrix[], SparseMatrixElement transpose[]) {
+    int count[m];
+    int index[m];
+    
+    // Initialize count array
+    for (int i = 0; i < m; i++) {
+        count[i] = 0;
+    }
+    
+    // Count the number of non-zero elements in each column
+    for (int i = 0; i < numNonZero; i++) {
+        count[matrix[i].col]++;
+    }
+    
+    // Calculate the starting index of each column in transpose matrix
+    index[0] = 0;
+    for (int i = 1; i < m; i++) {
+        index[i] = index[i-1] + count[i-1];
+    }
+    
+    // Perform the transpose operation
+    for (int i = 0; i < numNonZero; i++) {
+        int j = index[matrix[i].col];
+        transpose[j].row = matrix[i].col;
+        transpose[j].col = matrix[i].row;
+        transpose[j].value = matrix[i].value;
+        index[matrix[i].col]++;
+    }
+}
+
+// Function to perform Fast Transpose on a sparse matrix
+void fastTranspose(int n, int m, int numNonZero, SparseMatrixElement matrix[], SparseMatrixElement transpose[]) {
+    int count[m];
+    int index[m];
+    
+    // Initialize count array
+    for (int i = 0; i < m; i++) {
+        count[i] = 0;
+    }
+    
+    // Count the number of non-zero elements in each column
+    for (int i = 0; i < numNonZero; i++) {
+        count[matrix[i].col]++;
+    }
+    
+    // Calculate the starting index of each column in transpose matrix
+    index[0] = 0;
+    for (int i = 1; i < m; i++) {
+        index[i] = index[i-1] + count[i-1];
+    }
+    
+    // Perform the transpose operation
+    for (int i = 0; i < numNonZero; i++) {
+        int j = index[matrix[i].col];
+        transpose[j].row = matrix[i].col;
+        transpose[j].col = matrix[i].row;
+        transpose[j].value = matrix[i].value;
+        index[matrix[i].col]++;
+    }
+    
+    // Sort the transpose matrix by row
+    for (int i = 0; i < m-1; i++) {
+        for (int j = i+1; j < m; j++) {
+            if (transpose[i].row > transpose[j].row) {
+                SparseMatrixElement temp = transpose[i];
+                transpose[i] = transpose[j];
+                transpose[j] = temp;
+            }
+        }
+    }
+}
+
+// Function to print a sparse matrix
+void printSparseMatrix(int n, int m, int numNonZero, SparseMatrixElement matrix[]) {
+    printf("Sparse Matrix:\n");
+    for (int i = 0; i < numNonZero; i++) {
+        printf("%d %d %d\n", matrix[i].row, matrix[i].col, matrix[i].value);
+    }
+    printf("\n");
+}
+
+int main() {
+    int n, m, numNonZero;
+    
+    printf("Enter the number of rows of the matrix: ");
+    scanf("%d", &n);
+    printf("Enter the number of columns of the matrix: ");
+    scanf("%d", &m);
+    printf("Enter the number of non-zero elements: ");
+    scanf("%d", &numNonZero);
+    
+    SparseMatrixElement matrix[numNonZero];
+    SparseMatrixElement transpose[numNonZero];
+    
+    printf("Enter the elements of the matrix (row, column, value):\n");
+    for (int i = 0; i < numNonZero; i++) {
+        scanf("%d %d %d", &matrix[i].row, &matrix[i].col, &matrix[i].value);
+    }
+    
+    printSparseMatrix(n, m, numNonZero, matrix);
+    
+    // Perform Simple Transpose
+    simpleTranspose(n, m, numNonZero, matrix, transpose);
+    printf("Simple Transpose:\n");
+    printSparseMatrix(m, n, numNonZero, transpose);
+    
+    // Perform Fast Transpose
+    fastTranspose(n, m, numNonZero, matrix, transpose);
+    printf("Fast Transpose:\n");
+    printSparseMatrix(m, n, numNonZero, transpose);
+    
+    return 0;
+}
