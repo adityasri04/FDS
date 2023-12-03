@@ -1,0 +1,163 @@
+#include <stdio.h>
+#include <string.h>
+
+#define MAX_STUDENTS 100
+
+// Structure for student
+typedef struct {
+    int rollNumber;
+    char name[50];
+    float percentage;
+} Student;
+
+// Function to display a student
+void displayStudent(Student student) {
+    printf("Roll Number: %d\n", student.rollNumber);
+    printf("Name: %s\n", student.name);
+    printf("Percentage: %.2f\n\n", student.percentage);
+}
+
+// Function for linear search
+int linearSearch(Student students[], int n, int rollNumber) {
+    for (int i = 0; i < n; i++) {
+        if (students[i].rollNumber == rollNumber) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+// Function for binary search
+int binarySearch(Student students[], int left, int right, int rollNumber) {
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+        if (students[mid].rollNumber == rollNumber) {
+            return mid;
+        }
+        if (students[mid].rollNumber < rollNumber) {
+            left = mid + 1;
+        } else {
+            right = mid - 1;
+        }
+    }
+    return -1;
+}
+
+// Function for insertion sort
+void insertionSort(Student students[], int n) {
+    int i, j;
+    Student key;
+    for (i = 1; i < n; i++) {
+        key = students[i];
+        j = i - 1;
+        while (j >= 0 && students[j].rollNumber > key.rollNumber) {
+            students[j + 1] = students[j];
+            j = j - 1;
+        }
+        students[j + 1] = key;
+    }
+}
+
+// Function for selection sort
+void selectionSort(Student students[], int n) {
+    int i, j, minIndex;
+    Student temp;
+    for (i = 0; i < n - 1; i++) {
+        minIndex = i;
+        for (j = i + 1; j < n; j++) {
+            if (students[j].rollNumber < students[minIndex].rollNumber) {
+                minIndex = j;
+            }
+        }
+        temp = students[minIndex];
+        students[minIndex] = students[i];
+        students[i] = temp;
+    }
+}
+
+// Function for shell sort
+void shellSort(Student students[], int n) {
+    int gap, i, j;
+    Student temp;
+    for (gap = n / 2; gap > 0; gap /= 2) {
+        for (i = gap; i < n; i++) {
+            temp = students[i];
+            for (j = i; j >= gap && students[j - gap].rollNumber > temp.rollNumber; j -= gap) {
+                students[j] = students[j - gap];
+            }
+            students[j] = temp;
+        }
+    }
+}
+
+int main() {
+    Student students[MAX_STUDENTS];
+    int n;
+
+    printf("Enter the number of students: ");
+    scanf("%d", &n);
+
+    for (int i = 0; i < n; i++) {
+        printf("Enter details for student %d:\n", i + 1);
+        printf("Roll Number: ");
+        scanf("%d", &students[i].rollNumber);
+        printf("Name: ");
+        scanf(" %[^\n]s", students[i].name);
+        printf("Percentage: ");
+        scanf("%f", &students[i].percentage);
+        printf("\n");
+    }
+
+    printf("Student database:\n");
+    for (int i = 0; i < n; i++) {
+        displayStudent(students[i]);
+    }
+
+    int rollNumber;
+
+    printf("Enter the roll number to search: ");
+    scanf("%d", &rollNumber);
+
+    // Linear search
+    int linearIndex = linearSearch(students, n, rollNumber);
+    if (linearIndex != -1) {
+        printf("Linear Search: Student found at index %d\n", linearIndex);
+        displayStudent(students[linearIndex]);
+    } else {
+        printf("Linear Search: Student not found\n");
+    }
+
+    // Sorting using insertion sort
+    insertionSort(students, n);
+    printf("After Insertion Sort:\n");
+    for (int i = 0; i < n; i++) {
+        displayStudent(students[i]);
+    }
+
+    // Binary search
+    printf("Enter the roll number to search using Binary Search: ");
+    scanf("%d", &rollNumber);
+    int binaryIndex = binarySearch(students, 0, n - 1, rollNumber);
+    if (binaryIndex != -1) {
+        printf("Binary Search: Student found at index %d\n", binaryIndex);
+        displayStudent(students[binaryIndex]);
+    } else {
+        printf("Binary Search: Student not found\n");
+    }
+
+    // Sorting using selection sort
+    selectionSort(students, n);
+    printf("After Selection Sort:\n");
+    for (int i = 0; i < n; i++) {
+        displayStudent(students[i]);
+    }
+
+    // Sorting using shell sort
+    shellSort(students, n);
+    printf("After Shell Sort:\n");
+    for (int i = 0; i < n; i++) {
+        displayStudent(students[i]);
+    }
+
+    return 0;
+}
