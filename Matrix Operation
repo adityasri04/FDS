@@ -1,0 +1,110 @@
+#include <stdio.h>
+
+
+void addMatrices(int m, int n, int a[m][n], int b[m][n], int result[m][n]) {
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
+            result[i][j] = a[i][j] + b[i][j];
+        }
+    }
+}
+
+
+void subtractMatrices(int m, int n, int a[m][n], int b[m][n], int result[m][n]) {
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
+            result[i][j] = a[i][j] - b[i][j];
+        }
+    }
+}
+
+
+void multiplyMatrices(int m, int n, int p, int a[m][n], int b[n][p], int result[m][p]) {
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < p; j++) {
+            result[i][j] = 0;
+            for (int k = 0; k < n; k++) {
+                result[i][j] += a[i][k] * b[k][j];
+            }
+        }
+    }
+}
+
+
+void transposeMatrix(int m, int n, int matrix[m][n], int result[n][m]) {
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
+            result[j][i] = matrix[i][j];
+        }
+    }
+}
+
+
+void printMatrix(int m, int n, int matrix[m][n]) {
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
+            printf("%d ", matrix[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+int main() {
+    int m, n, p;
+    
+    printf("Enter the number of rows of the matrices: ");
+    scanf("%d", &m);
+    printf("Enter the number of columns of the matrices: ");
+    scanf("%d", &n);
+    
+    int matrix1[m][n], matrix2[m][n], result[m][n];
+    
+    printf("Enter the elements of the first matrix:\n");
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
+            scanf("%d", &matrix1[i][j]);
+        }
+    }
+    
+    printf("Enter the elements of the second matrix:\n");
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
+            scanf("%d", &matrix2[i][j]);
+        }
+    }
+    
+  
+    addMatrices(m, n, matrix1, matrix2, result);
+    printf("Addition of the two matrices:\n");
+    printMatrix(m, n, result);
+    
+   
+    subtractMatrices(m, n, matrix1, matrix2, result);
+    printf("Subtraction of the two matrices:\n");
+    printMatrix(m, n, result);
+    
+    printf("Enter the number of columns of the second matrix for multiplication: ");
+    scanf("%d", &p);
+    
+    int matrix3[n][p], result2[m][p];
+    
+    printf("Enter the elements of the third matrix:\n");
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < p; j++) {
+            scanf("%d", &matrix3[i][j]);
+        }
+    }
+    
+    
+    multiplyMatrices(m, n, p, matrix1, matrix3, result2);
+    printf("Multiplication of the two matrices:\n");
+    printMatrix(m, p, result2);
+    
+    
+    int result3[n][m];
+    transposeMatrix(m, n, matrix1, result3);
+    printf("Transpose of the first matrix:\n");
+    printMatrix(n, m, result3);
+    
+    return 0;
+}
