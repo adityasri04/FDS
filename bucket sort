@@ -1,0 +1,52 @@
+#include <stdio.h>
+
+#define MAX_STUDENTS 100
+
+typedef struct {
+    int rollNumber;
+    float percentage;
+} Student;
+
+void bucketSort(float array[], int size) {
+    // Create an array of buckets
+    int i, j;
+    int bucketCount[MAX_STUDENTS] = {0};
+    float sortedArray[size];
+
+    // Calculate the count of elements in each bucket
+    for (i = 0; i < size; i++) {
+        bucketCount[(int)(array[i] * 100)]++;
+    }
+
+    // Sort the elements in each bucket
+    for (i = 0, j = 0; i < MAX_STUDENTS; i++) {
+        while (bucketCount[i] > 0) {
+            sortedArray[j++] = (float)i / 100;
+            bucketCount[i]--;
+        }
+    }
+
+    // Display the top five scores
+    printf("Top five scores:\n");
+    for (i = size - 1; i >= size - 5; i--) {
+        printf("%.2f\n", sortedArray[i]);
+    }
+}
+
+int main() {
+    int i, n;
+    float percentages[MAX_STUDENTS];
+
+    printf("Enter the number of students: ");
+    scanf("%d", &n);
+
+    printf("Enter the percentages of %d students:\n", n);
+    for (i = 0; i < n; i++) {
+        scanf("%f", &percentages[i]);
+    }
+
+    // Sort the percentages using bucket sort
+    bucketSort(percentages, n);
+
+    return 0;
+}
