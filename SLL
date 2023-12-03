@@ -1,0 +1,137 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Structure to store member information
+typedef struct Member {
+    int prn;
+    char name[50];
+    struct Member* next;
+} Member;
+
+// Function to add a member to the club
+void addMember(Member** head, int prn, char name[]) {
+    Member* newMember = (Member*)malloc(sizeof(Member));
+    newMember->prn = prn;
+    strcpy(newMember->name, name);
+    newMember->next = NULL;
+
+    if (*head == NULL) {
+        *head = newMember;
+    } else {
+        Member* temp = *head;
+        while (temp->next != NULL) {
+            temp = temp->next;
+        }
+        temp->next = newMember;
+    }
+}
+
+// Function to delete a member from the club
+void deleteMember(Member** head, int prn) {
+    Member* temp = *head;
+    Member* prev = NULL;
+
+    if (temp != NULL && temp->prn == prn) {
+        *head = temp->next;
+        free(temp);
+        return;
+    }
+
+    while (temp != NULL && temp->prn != prn) {
+        prev = temp;
+        temp = temp->next;
+    }
+
+    if (temp == NULL) {
+        printf("Member with PRN %d not found.\n", prn);
+        return;
+    }
+
+    prev->next = temp->next;
+    free(temp);
+}
+
+// Function to compute the total number of members in the club
+int getTotalMembers(Member* head) {
+    int count = 0;
+    Member* temp = head;
+
+    while (temp != NULL) {
+        count++;
+        temp = temp->next;
+    }
+
+    return count;
+}
+
+// Function to display all the members of the club
+void displayMembers(Member* head) {
+    Member* temp = head;
+
+    printf("Club Members:\n");
+    while (temp != NULL) {
+        printf("PRN: %d, Name: %s\n", temp->prn, temp->name);
+        temp = temp->next;
+    }
+}
+
+// Function to sort two linked lists
+void sortLists(Member** head1, Member** head2) {
+    // Sorting logic here
+    // ...
+}
+
+// Function to merge two linked lists
+void mergeLists(Member** head1, Member** head2) {
+    // Merging logic here
+    // ...
+}
+
+// Function to reverse the list using three pointers
+void reverseList(Member** head) {
+    Member* prev = NULL;
+    Member* current = *head;
+    Member* next = NULL;
+
+    while (current != NULL) {
+        next = current->next;
+        current->next = prev;
+        prev = current;
+        current = next;
+    }
+
+    *head = prev;
+}
+
+int main() {
+    Member* head = NULL;
+
+    // Add members
+    addMember(&head, 123, "John");
+    addMember(&head, 456, "Jane");
+    addMember(&head, 789, "Alice");
+
+    // Delete a member
+    deleteMember(&head, 456);
+
+    // Compute total number of members
+    int totalMembers = getTotalMembers(head);
+    printf("Total members: %d\n", totalMembers);
+
+    // Display members
+    displayMembers(head);
+
+    // Sort two linked lists
+    Member* head1 = NULL;
+    Member* head2 = NULL;
+    sortLists(&head1, &head2);
+
+    // Merge two linked lists
+    mergeLists(&head1, &head2);
+
+    // Reverse the list
+    reverseList(&head);
+
+    return 0;
+}
