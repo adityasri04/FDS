@@ -1,0 +1,42 @@
+%macro op 4
+mov rax,%1
+mov rdi,%2
+mov rsi,%3
+mov rdx,%4
+syscall
+%endmacro
+
+section .data
+	number dw 3541d
+	msg db 10d,13d,"equivalent HEX number is:"
+	msglen equ $-msg
+	
+section .bss
+	num resb 5
+	
+section .text
+	global _start
+	_start:
+	
+	mov ax,word[number]
+	mov bx,10H
+	mov rdi,num+4
+
+loop3:
+	mov dx,0
+	div bx
+	cmp dl,09H
+	jbe down1
+	add dl,07H
+	
+down1:	
+	add dl,30H
+	mov [rdi],dl
+  dec rdi
+  cmp ax,0
+  jnz loop3
+  
+op 1,1,msg,msglen
+op 1,1,num,5
+op 60,0,0,0
+
