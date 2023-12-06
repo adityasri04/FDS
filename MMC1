@@ -1,0 +1,71 @@
+%macro ak 4
+mov rax,%1
+mov rdi,%2
+mov rsi,%3
+mov rdx,%4
+syscall
+%endmacro
+section .data
+	arr db 10H,32H,22H,16H,88H
+	
+	msg db "The result of array addition is : " 
+	msglen equ $-msg
+
+	msg1 db "",10 
+	msg1len equ $-msg1
+
+
+	
+section .bss
+counter resb 1
+count resb 1
+temp resb 1
+temp1 resb 1
+temp2 resb 1
+result resw 1
+
+
+section .text
+global _start
+	_start:
+	
+
+	mov rsi,arr 					;arr stores address of 1str byte,and address of 1st byte is copied to rsi,rsi is acting as pointer
+	mov byte[counter],5
+	mov ax,0							;initialize ax to 0
+	mov bx,0							;initialize bx to 0
+	
+add_nxt: mov bl,[rsi]
+				 add ax,bx 					;ax=ax+bx
+				 inc rsi	 					;increment rsi 
+				 dec byte[counter]	
+				 jnz add_nxt
+mov [result],ax
+call display
+ak 60,0,0,0
+
+display:	ak 1,1,msg,msglen
+					mov byte[count],4
+					mov ax,[result]
+up: rol ax,4
+		mov [temp],ax
+		and ax,000FH
+		cmp al,09H
+		jbe add30H
+		add al,07H
+			
+add30H: add al,30H
+				mov [temp2],ax
+				ak 1,1,temp2,1 
+				mov ax,[temp]
+				dec byte[count]
+				jnz up
+	
+	ak 1,1,msg1,msg1len
+ret
+
+
+				 
+	
+		
+		
