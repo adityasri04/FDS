@@ -1,42 +1,54 @@
-%macro op 4
+section .data
+msg1 db "Enter Hex number:",10
+msg1len equ $-msg1
+msg2 db "BCD Equivalent number:",10
+msg2len equ $-msg2
+section .bss
+a resb 1
+num resb 5
+%macro operat 4
 mov rax,%1
 mov rdi,%2
 mov rsi,%3
 mov rdx,%4
-syscall
+Syscall
 %endmacro
-
-section .data
-	number dw 3541d
-	msg db 10d,13d,"equivalent HEX number is:"
-	msglen equ $-msg
-	
-section .bss
-	num resb 5
-	
 section .text
-	global _start
-	_start:
-	
-	mov ax,word[number]
-	mov bx,10H
-	mov rdi,num+4
-
-loop3:
-	mov dx,0
-	div bx
-	cmp dl,09H
-	jbe down1
-	add dl,07H
-	
-down1:	
-	add dl,30H
-	mov [rdi],dl
-  dec rdi
-  cmp ax,0
-  jnz loop3
-  
-op 1,1,msg,msglen
-op 1,1,num,5
-op 60,0,0,0
-
+global _start
+_start:
+operat 1,1,msg1,msg1len
+operat 0,0,num,5
+mov rsi,num
+mov rbp,00
+mov ax,00h 
+again:
+ mov bl,byte[rsi]
+cmp bl,0ah
+ je htob
+cmp bl, 39h
+ jae sub30h
+sub bl, 07h
+sub30h:
+ sub bl, 30h
+ rol ax,4
+ add al,bl
+ inc rsi
+ jmp again
+ htob:
+ mov dx,00
+mov bx,0Ah
+div bx
+ push dx
+ inc rbp
+cmp eax,00
+ jnz htob
+ operat 1,1,msg2,msg2len
+prnt: pop dx
+nxt1: add dx,30h
+ mov [a],dl
+ operat 1,1,a,1
+ dec rbp
+ jnz prnt
+ mov rax,60
+mov rdi,0
+syscall
