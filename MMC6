@@ -1,42 +1,114 @@
-%macro op 4
-mov rax,%1
-mov rdi,%2
-mov rsi,%3
-mov rdx,%4
-syscall
+%macro scall 4          ;general macro with 4 parameters
+        mov rax,%1
+        mov rdi,%2
+        mov rsi,%3
+        mov rdx,%4
+        syscall         ;call the kernel (interrupt)           
 %endmacro
 
 section .data
-	number dw 3541d
-	msg db 10d,13d,"equivalent HEX number is:"
-	msglen equ $-msg
-	
-section .bss
-	num resb 5
-	
-section .text
-	global _start
-	_start:
-	
-	mov ax,word[number]
-	mov bx,10H
-	mov rdi,num+4
+                
+        m1 db 10d,"Enter first String : "
+        l1 equ $-m1
+        
+	    m2 db 10d,"Enter second String : "
+        l2 equ $-m2
 
-loop3:
-	mov dx,0
-	div bx
-	cmp dl,09H
-	jbe down1
-	add dl,07H
+        m3 db 10d,"Concatenated String: "
+        l3 equ $-m3
+
+        m4 db 10d,"No. of words: "
+        l4 equ $-m4
+
+	    m5 db 10d,"No. of Spaces: "
+        l5 equ $-m5
+        
+        
+        
+section .bss
+        
+        string1 resb 25
+        string2 resb 25
+	    string3 resb 50
+	    
+        length1 resb 25
+        length12 resb 25
+        
+        length2 resb 25
+        
+	    word1 resb 1
+	    space2 resb 1
+        
+section .text
+        global _start
+_start:
+        
+              
+	    scall 1,1,m1,l1    ;Enter first String: "
+        scall 0,0,string1,25 ;length is returned in rax
+        Dec rax
+        mov [length1],rax
+        mov [length12], rax
+        
+	    scall 1,1,m2,l2    ;Enter second String: "
+        scall 0,0,string2,25 ;length is returned in rax
+        Dec rax
+        mov [length2],rax
+              
+
+        call Concatenate            
+        call words_spaces 
+	    scall 60,0,0,0 
+
+Concatenate: 
 	
-down1:	
-	add dl,30H
-	mov [rdi],dl
-  dec rdi
-  cmp ax,0
-  jnz loop3
-  
-op 1,1,msg,msglen
-op 1,1,num,5
-op 60,0,0,0
+		mov rsi,string1
+		mov rdi,string3
+	
+copy1:
+		mov AL, [rsi]
+		mov [rdi], AL
+		Inc rsi
+		Inc rdi
+		Dec byte[length1]
+		jnz copy1
+
+		mov rsi,string2
+copy2:
+		mov AL, [rsi]
+		mov [rdi], AL
+		Inc rsi
+		Inc rdi
+		Dec byte[length2]
+		jnz copy2
+
+		scall 1,1,m3,l3
+		scall 1,1,string3,50
+		RET 
+
+
+words_spaces: 
+		mov rsi,string1
+		Mov BL, 00   ; to count No. of spaces 
+
+up: 	Mov AL, [rsi]
+		cmp AL, 20h
+		jne  nspace
+		Inc BL
+nspace: Inc rsi
+		Dec byte[length12]
+		JNZ up
+		
+		scall 1,1,m5,l5   ; No. of spaces
+		add BL,30h
+		mov [space2],BL
+		scall 1,1,space2, 1
+	
+	
+		scall 1,1,m4, l4   ; No of words
+		Inc BL
+		mov [word1], BL
+		scall 1,1,word1,1
+		RET  
+
 
