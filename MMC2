@@ -1,73 +1,73 @@
-%macro ak 4
-mov rax,%1
-mov rdi,%2
-mov rsi,%3
-mov rdx,%4
-syscall
-%endmacro
-
-
-section .data
-	msg db "Array after sorting is: ",10
-	msglen equ $-msg
-	arr db 10h,32h,22h,21h,29h
-
-section .bss
-	result resb 15
-	
-		
-section .text
-	global _start
-		_start:
-	
-	mov bl,5
-	loop_outer:mov cl,4
-	mov rsi,arr
-	
-	
-up: 
-	mov al,byte[rsi]
-	cmp al,byte[rsi+1]
-	jbe only_inc
-	xchg al,byte[rsi+1]
-	mov byte[rsi],al
-	
-	
-only_inc:
-	inc rsi
-	dec cl
-	jnz up
-	dec bl
-	jnz loop_outer
-	ak 1,1,msg,msglen
-	mov rdi,arr
-	mov rsi,result
-	mov dl,5
-
-
-disp_loop1:
-	mov cl,2
-	mov al,[rdi]
-	againx:
-	rol al,4
-	mov bl,al
-	and al,0FH
-	cmp al,09H
-	jbe downx
-	add al,07H
-	downx:
-	add al,30H
-	mov byte[rsi],al
-	mov al,bl
-	inc rsi
-	dec cl
-	jnz againx
-	mov byte[rsi],0AH
-	inc rsi
-	inc rdi
-	dec dl
-	jnz disp_loop1
-	ak 1,1,result,15
-	ak 60,0,0,0
-	
+%macro op 4 
+mov rax, %1 
+mov rdi, %2 
+mov rsi, %3 
+mov rdx, %4 
+syscall 
+%endmacro 
+  
+section .data 
+msg db 10, "Sorted array is: ", 10 
+msglen equ $-msg 
+arr1 db 10H, 18H, 78H, 23H, 56H 
+  
+section .bss 
+result resb 15 
+tempr resb 1 
+  
+  
+section .text 
+global _start 
+  
+_start:	 
+mov bl, 05 
+next: 
+	mov cl, 04 ; no. of comparisions 
+	mov rsi, arr1 
+up:	 
+	mov al, [rsi] 
+	cmp al, [rsi+1] 
+	jbe noswap 
+	xchg al, [rsi+1] 
+	mov[rsi], al 
+noswap: 
+	inc rsi 
+	dec cl 
+	jnz up 
+	dec bl 
+	jnz next	 
+	 
+mov rdi, arr1 
+mov rsi, result 
+mov dl, 10 
+  
+disp: 
+	mov cl, 02 ;digit counter	 
+	mov al, [rdi] ; al=10 
+  
+again: 
+	rol al, 04 ; al= 01 
+	mov [tempr], al 
+	and al, 0Fh 
+	cmp al, 09h 
+	jbe down 
+	add al, 07h 
+  
+down: 
+	add al,30h 
+	mov [rsi], al 
+	mov al, [tempr] 
+	inc rsi 
+	dec cl 
+	jnz again 
+  
+mov byte[rsi], 0Ah 
+inc rsi 
+inc rdi 
+dec dl 
+jnz disp 
+	 
+op 1,1,msg,msglen 
+op 1, 1, result, 15 
+op 60, 0, 0, 0 
 
