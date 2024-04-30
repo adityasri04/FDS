@@ -1,168 +1,109 @@
-%macro display 4
-	mov rax,%1
-	mov rdi,%2
-	mov rsi,%3
-	mov rdx,%4
-	syscall
-%endmacro
+// udp client driver program 
+#include <stdio.h> 
+#include <strings.h> 
+#include <sys/types.h> 
+#include <arpa/inet.h> 
+#include <sys/socket.h> 
+#include<netinet/in.h> 
+#include<unistd.h> 
+#include<stdlib.h> 
 
-section .data 
-msg1 db "Base Address",10
-msgl1 equ $-msg1
-msg2 db "Offset: ",10
-msgl2 equ $-msg2
-msg3 db "Global descriptor table register",10
-msgl3 equ $-msg3
-msg4 db "Interrupt descriptor table register",10
-msgl4 equ $-msg4
-msg5 db "Local descriptor table register",10
-msgl5 equ $-msg5
-msg6 db "Task register",10
-msgl6 equ $-msg6
-msg7 db "Machine status word",10
-msgl7 equ $-msg7
-newl db 0AH
+#define PORT 5000 
+#define MAXLINE 1000 
 
-section .bss
-gdtr resq 1
-gdtlimit resw 1
+// Driver code 
+int main() 
+{ 
+	char buffer[100]; 
+	char *message = "HELLO SERVER"; 
+	int sockfd, n; 
+	struct sockaddr_in servaddr; 
+	//printf("Hello World");
+	// clear servaddr 
+	bzero(&servaddr, sizeof(servaddr)); 
+	servaddr.sin_addr.s_addr = inet_addr("127.0.0.1"); 
+	servaddr.sin_port = htons(PORT); 
+	servaddr.sin_family = AF_INET; 
+	
+	// create datagram socket 
+	sockfd = socket(AF_INET, SOCK_DGRAM, 0); 
+	
+	// connect to server 
+	if(connect(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) 
+	{ 
+		printf("\n Error : Connect Failed \n"); 
+		exit(0); 
+	} 
 
-idtr resq 1
-idtlimit resw 1
+	// request to send datagram 
+	// no need to specify server address in sendto 
+	// connect stores the peers IP and port 
+	sendto(sockfd, message, MAXLINE, 0, (struct sockaddr*)NULL, sizeof(servaddr)); 
+	
+	// waiting for response 
+	recvfrom(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr*)NULL, NULL); 
+	printf("Recieved Message:");
+	puts(buffer);
+	printf("\n");
+	int array[100];
+	for (int i = 0 ; buffer[i]!='\0' ; ++i) {
+ 		//	array[i] = ntohl(buffer[i]) ;
+			printf("%c=>%d\n",buffer[i],buffer[i]);			
+		}
+	 
 
-ldtr resw 1
-tr resw 1
-msw resw 1
-temp64 resq 1
-temp16 resw 1
-
-asc resb 1
-
-
-section .text
-global _start
-_start:
-
-;GDTR
-
-display 1,1,msg3,msgl3			;Global descriptor table register-GDTR
-display 1,1,msg1,msgl1			;base address 8 bytes
-
-mov rsi,gdtr				;rsi points to GDTR
-sgdt [rsi]				;store the contents of GDT in destination operand
-mov rax,[rsi]				;move contents of rsi in rax
-call display64
-
-display 1,1,newl,1			;new line
-display 1,1,msg2,msgl2
-mov rsi,gdtlimit			;rsi pointing to gdtlimit
-mov ax,[rsi]
-call display16
+	// close the descriptor 
+	close(sockfd); 
+} 
 
 
-;IDTR
+// server program for udp connection 
+#include <stdio.h> 
+#include <strings.h> 
+#include <sys/types.h> 
+#include <arpa/inet.h> 
+#include <sys/socket.h> 
+#include<netinet/in.h> 
+#define PORT 5000 
+#define MAXLINE 1000 
 
-display 1,1,newl,1
-display 1,1,msg4,msgl4
-display 1,1,newl,1
-display 1,1,msg1,msgl1
+// Driver code 
+int main() 
+{ 
+	char buffer[100]; 
+	char *message = "Hello Client"; 
+	int listenfd, len; 
+	struct sockaddr_in servaddr, cliaddr; 
+	bzero(&servaddr, sizeof(servaddr)); 
 
-mov rsi,idtr				;rsi points to IDTR
-sidt [rsi]
-mov rax,[rsi]
-call display64
+	// Create a UDP Socket 
+	listenfd = socket(AF_INET, SOCK_DGRAM, 0);		 
+	servaddr.sin_addr.s_addr = htonl(INADDR_ANY); 
+	servaddr.sin_port = htons(PORT); 
+	servaddr.sin_family = AF_INET; 
 
-display 1,1,newl,1
-display 1,1,msg2,msgl2
-
-mov rsi,idtlimit			;rsi points to idtlimit
-mov ax,[rsi]
-call display16
-
-
-;LDTR
-
-display 1,1,newl,1
-display 1,1,msg5,msgl5
-display 1,1,newl,1
-display 1,1,msg1,msgl1
-
-mov rsi,ldtr				;rsi points to LDTR
-sldt [rsi]
-mov rax,[rsi]
-call display16
-
-
-;TR
-
-display 1,1,newl,1
-display 1,1,msg6,msgl6
-display 1,1,newl,1
-display 1,1,msg1,msgl1
-
-mov rsi,tr				;rsi points to TR
-str [rsi]
-mov rax,[rsi]
-call display16
-
-
-;MSW
-
-display 1,1,newl,1
-display 1,1,msg7,msgl7
-display 1,1,newl,1
-display 1,1,msg1,msgl1
-
-mov rsi,msw				;rsi points to TR
-smsw [rsi]
-mov rax,[rsi]
-call display16
-
-display 60,0,0,0
-
-
-
-
-;Display 64 bit content inside rax
-
-display64:
-mov bp,16				;set counter for 16 digit number=64 bits (bp is a register)
-again1:
-rol rax,4
-mov [temp64],rax
-and rax,0FH
-cmp rax,09H
-jbe skip64
-add al,07H
-	skip64:
-		add al,30H
-		mov [asc],al
-	display 1,1,asc,1
-mov rax,[temp64]
-dec bp
-jnz again1
-ret
-
-
-;Display 16 bit content inside rax
-
-display16:
-mov bp,4				;set counter for 4 digit number = 16 bits (bp is a register)
-
-again2:
-rol ax,4
-mov [temp16],ax
-and ax,0FH
-cmp al,09H
-jbe skip16
-add al,07H
-
-skip16:
-	add al,30H
-	mov [asc],al
-display 1,1,asc,1
-mov ax,[temp16]
-dec bp
-jnz again2
-ret
+	// bind server address to socket descriptor 
+	bind(listenfd, (struct sockaddr*)&servaddr, sizeof(servaddr)); 
+	
+	//receive the datagram 
+	len = sizeof(cliaddr); 
+	int n = recvfrom(listenfd, buffer, sizeof(buffer), 
+			0, (struct sockaddr*)&cliaddr,&len); //receive message from server 
+	buffer[n] = '\0'; 
+	puts(buffer);
+	int i; 
+        int k[100];
+        //typeof(buffer);
+	//for(i=0;buffer[i]!='\0';i++){
+		
+ 	   	//arrayToSend[i] = htonl(array[i]) ;
+		//k[i]=htonl(buffer[i]);
+		//printf("%d=>%d=>%c\n",k[i],buffer[i],buffer[i]);
+        //}
+	
+		
+	// send the response 
+	sendto(listenfd, buffer, n, 0, 
+		(struct sockaddr*)&cliaddr, sizeof(cliaddr)); 
+} 
 
