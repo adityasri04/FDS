@@ -1,0 +1,333 @@
+#8
+import numpy as np 
+import matplotlib.pyplot as plt
+from sklearn import datasets
+from sklearn.cluster import DBSCAN, SpectralClustering
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+
+# DBSCAN (Density-Based spatial Clustering of Applications with Noise)
+# Load Iris dataset
+iris = datasets.load_iris()
+X = iris.data
+y = iris.target
+
+# Standardize the data
+scaler = StandardScaler()
+X = scaler.fit_transform(X)
+
+# Compute DBSCAN
+dbscan = DBSCAN(eps=0.5, min_samples=5) 
+dbscan_labels = dbscan.fit_predict(X)
+
+# Spectral Clustering
+spectral = SpectralClustering(n_clusters=3, affinity='nearest_neighbors', assign_labels='kmeans')
+spectral_labels = spectral.fit_predict(X)
+
+# Initialize K-Means clustering with k = 3 clusters
+kmeans = KMeans(n_clusters=3, init='k-means++', max_iter=300, random_state=0)
+# Fit the data to the K-Means clustering model
+kmeans_labels = kmeans.fit_predict(X)
+
+# Plot the results
+fig, axs = plt.subplots(1, 3, figsize=(10, 5))
+
+# DBSCAN results
+axs[0].scatter(X[:, 0], X[:, 1], c=dbscan_labels, cmap='rainbow')
+axs[0].set_title('DBSCAN')
+
+# Spectral Clustering results
+axs[1].scatter(X[:, 0], X[:, 1], c=spectral_labels, cmap='rainbow')
+axs[1].set_title('Spectral Clustering')
+
+# K-Means Clustering results
+axs[2].scatter(X[:, 0], X[:, 1], c=kmeans_labels, cmap='rainbow')
+axs[2].set_title('K-Means Clustering')
+
+plt.show()
+
+#7
+import pandas as pd
+df = pd.read_csv('data_dt2.csv')
+df.head()
+
+from sklearn.preprocessing import LabelEncoder
+le = LabelEncoder()
+df['Age'] = le.fit_transform(df['Age'])
+df['Income'] = le.fit_transform(df['Income'])
+df['Gender'] = le.fit_transform(df['Gender'])
+df['Marital Status'] = le.fit_transform(df['Marital Status'])
+df['Buys'] = le.fit_transform(df['Buys'])
+df
+
+from sklearn.model_selection import train_test_split
+X_train,X_test,y_train,y_test = train_test_split(df.iloc[:,1:-1], df.iloc[:,-1], test_size=0.22, random_state=42)
+print(len(X_train))
+print(len(X_test))
+print(X_train)
+print(X_test)
+
+from sklearn.tree import DecisionTreeClassifier
+model = DecisionTreeClassifier()
+model.fit(X_train,y_train)
+
+model.score(X_test,y_test)
+
+from sklearn.metrics import confusion_matrix
+confusion_matrix(y_test,model.predict(X_test))
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.metrics import confusion_matrix
+
+cm = confusion_matrix(y_test, model.predict(X_test))
+
+# Plot the confusion matrix
+plt.figure(figsize=(8, 6))  
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')  
+plt.xlabel('Predicted Label')  
+plt.ylabel('True Label')       
+plt.title('Confusion Matrix')  
+plt.show()  # Show the plot
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.metrics import confusion_matrix
+import numpy as np
+
+cm = confusion_matrix(y_test, model.predict(X_test))
+
+cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+
+# Plot the normalized confusion matrix
+plt.figure(figsize=(8, 6))  # Set the size of the plot
+sns.heatmap(cm_normalized, annot=True, fmt='.2f', cmap='YlGnBu')  # Use 'YlGnBu' colormap
+plt.xlabel('Predicted Label')  # X-axis label
+plt.ylabel('True Label')       # Y-axis label
+plt.title('Normalized Confusion Matrix') 
+plt.show()  # Show the plot
+
+#6
+pip install mlxtend
+pip install pandas mlxtend matplotlib seaborn
+from mlxtend.frequent_patterns import apriori, association_rules
+import seaborn as sns
+import matplotlib.pyplot as plt
+import pandas as pd
+
+data = pd.read_csv('store_data.csv', header=None)
+data = data.fillna('')
+
+data
+
+
+# Create a list of transactions
+transactions = data.values.tolist()
+
+# Create a DataFrame for one-hot encoding
+# Each item in the transaction is treated as a separate entry
+onehot = pd.get_dummies(pd.Series([item for sublist in transactions for item in sublist]))
+
+# Convert the one-hot DataFrame to a binary format (0s and 1s)
+basket = onehot.groupby(lambda x: x // onehot.shape[1]).sum()
+basket[basket > 1] = 1  # Convert any counts greater than 1 to 1
+
+print("\nTransformed basket DataFrame:")
+basket
+
+# Apply the Apriori algorithm
+frequent_items = apriori(basket, min_support=0.05, use_colnames=True)
+
+# Generate association rules
+rules = association_rules(frequent_items, metric="lift", min_threshold=1)
+
+# Sort the rules by confidence and lift
+rules = rules.sort_values(['confidence', 'lift'], ascending=[False, False])
+
+# Display the top rules
+print("\nTop association rules:")
+rules
+
+# Plotting support vs. confidence for the rules
+sns.scatterplot(data=rules, x='support', y='confidence', size='lift', sizes=(50, 500), legend=None)
+plt.title('Association Rules: Support vs. Confidence')
+plt.xlabel('Support')
+plt.ylabel('Confidence')
+plt.show()
+
+# Plotting the top 10 rules by lift
+plt.figure(figsize=(10, 6))
+top_rules = rules.nlargest(10, 'lift')
+sns.barplot(x='lift', y='antecedents', data=top_rules, palette='viridis')
+plt.title('Top 10 Association Rules by Lift')
+plt.xlabel('Lift')
+plt.ylabel('Rules')
+plt.show()
+
+##NORMALIZATION
+import pandas as pd
+import numpy as np
+from scipy import stats
+
+dataset= [0,11,10,12,14,12,15,14,13,15,102,12,14,17,19,107, 10,13,12,14,12,108,12,11,14,13,15,10,15,12,10,14,13,15,10]
+data = np.array(dataset)
+print(data)
+
+Q1 = np.percentile(data, 25)
+Q3 = np.percentile(data, 75)
+IQR = Q3 - Q1
+
+lb = Q1 - 1.5 * IQR
+ub = Q3 + 1.5 * IQR
+
+outliers = [x for x in data if (x < lb) or (x > ub)]
+print(outliers)
+
+z_scores = stats.zscore(data)
+outliers = data[np.abs(z_scores) > 3]
+outliers
+
+min = np.min(data)
+max = np.max(data)
+
+min_max = (data - min) / (max - min)
+min_max
+
+#outliers using min max which are =0 and >=0.9
+outliers = data[(min_max == 0) | (min_max >= 0.9)]
+outliers
+max_value = np.max(np.abs(data))
+j = len(str(max_value)) - 1  #digits in max value
+decimal_scaled = data / (10 ** j)
+decimal_scaled
+
+data2 = {'Name':['James','Barra','Sarah','Bill','Peter','Chole','Ben','Anna','Den'],
+        'Gender':['Male','Male','Female','Male','Male','Female','Male','Female','Male'],
+        'Age':[27,32,34,23,27,32,34,23,89],
+        'Weight':[76.1,98.3,63.6,87.2,75.1,98.3,63.5,87.2,224],
+        'Height':['Short','Short','Med','Tall','Short','Short','Med','Tall','Med'],
+        }
+df=pd.DataFrame(data2)
+df = df.sort_values(by=['Age','Weight'])
+df
+
+def iqr(column):
+    q1 = np.percentile(column, 25)
+    q3 = np.percentile(column, 75)
+    return q3 - q1
+
+iqr1 = iqr(data2['Weight'])
+iqr2 = iqr(data2['Age'])
+print(iqr1)
+print(iqr2)
+def find_outliers(column):
+    q1 = np.percentile(column, 25)
+    q3 = np.percentile(column, 75)
+    iqr = q3 - q1
+    lower_bound = q1 - 1.5 * iqr
+    upper_bound = q3 + 1.5 * iqr
+
+    outliers = column[(column < lower_bound) | (column > upper_bound)]
+
+    return outliers
+
+outliers1 = find_outliers(df['Weight'])
+outliers2 = find_outliers(df['Age'])
+print(outliers1)
+print(outliers2)
+def z_scores(data):
+    data = np.array(data)
+    mean = np.mean(data)
+    std_dev = np.std(data)
+
+    if std_dev == 0:
+        raise ValueError("Standard deviation is zero")
+
+    return (data - mean) / std_dev
+
+df['Age_z'] = z_scores(df['Age'])
+df['Wt_z'] = z_scores(df['Weight'])
+df
+
+age_outliers = df[np.abs(df['Age_z']) > 3]
+weight_outliers = df[np.abs(df['Wt_z']) > 3]
+print(age_outliers)
+print(weight_outliers)
+
+df = df.drop(columns=['Age_z', 'Wt_z'])
+
+def min_max(df, num_cols):
+    normalized_df = df.copy()
+    for col in num_cols:
+        min = df[col].min()
+        max = df[col].max()
+        normalized_df[col] = (df[col] - min) / (max - min)
+    return normalized_df
+
+n_df = min_max(df, ['Age', 'Weight'])
+n_df
+
+#find outlier using min max
+minmax_Age_outliers = df[(n_df['Age'] < 0.01) | (n_df['Age'] > 0.9)]
+minmax_Wt_outliers = df[(n_df['Weight'] < 0.01) | (n_df['Weight'] > 0.9)]
+print(minmax_Age_outliers)
+print(minmax_Wt_outliers)
+
+def decimal_scaling(df, num_cols):
+    scaled_df = df.copy()
+    for col in num_cols:
+        max_val = df[col].abs().max()
+        j = np.ceil(np.log10(max_val))
+        scaled_df[col] = df[col] / (10**j)
+    return scaled_df
+
+scaled_df = decimal_scaling(df, ['Age', 'Weight'])
+print(scaled_df)
+
+import pandas as pd
+import numpy as np
+
+df1 = pd.read_csv('Toyota.csv')
+df1
+
+#Convert to numeric for imputation of missing values
+df1['KM'] = pd.to_numeric(df1['KM'].replace('??', np.nan), errors='coerce')
+df1['HP'] = pd.to_numeric(df1['HP'], errors='coerce')
+df1['Doors'] = pd.to_numeric(df1['Doors'].replace({'three':3,'four':4,'five':5}), errors='coerce')
+
+#imputation with mean/mode for missing values
+df1['Age'] = df1['Age'].fillna(df1['Age'].mean())
+df1['KM'] = df1['KM'].fillna(df1['KM'].mean())
+df1['HP'] = df1['HP'].fillna(df1['HP'].mean())
+df1['Doors'] = df1['Doors'].fillna(df1['Doors'].mode()[0])
+df1.info()
+df1
+
+df1 = df1.sort_values(by=['Price','Age','KM','HP','CC','Weight'])
+df1
+
+
+cols = ['Price', 'Age', 'KM', 'HP', 'CC', 'Weight']
+for i in cols:
+    print({i:iqr(df1[i])})
+    print(f"{i}_Outliers :\n{find_outliers(df1[i])}")
+
+cols = ['Price', 'Age', 'KM', 'HP', 'CC', 'Weight']
+for i in cols:
+    df1[f'{i}_z'] = z_scores(df1[i])
+    print(df1[[i, f'{i}_z']])
+
+zscore_Price_outliers = df1[(np.abs(df1['Price_z']) > 3)]
+print('Price Outliers using Zscore')
+zscore_Price_outliers
+
+#Dropping extra created columns
+df1 = df1.drop(columns=['Price_z', 'Age_z', 'KM_z', 'HP_z', 'CC_z', 'Weight_z'])
+
+cols = ['Price', 'Age', 'KM', 'HP', 'CC', 'Weight']
+min_max(df1, cols)
+
+#outliers using min max for every column in cols list
+for i in cols:
+    print(f"{i}_Outliers :\n{df1[(df1[i] < 0.01) | (df1[i] > 0.9)]}")
+decimal_scaling(df1, cols)
